@@ -1,0 +1,57 @@
+from os import listdir
+from re import compile
+from json import dump
+from json import load
+from random import choice
+
+
+def CreateDictionary(): #функция создания словаря от адреса директории
+    dictionary = {} #изначально словарь пустой
+    lastword = '' #последнее слово пустое
+    for file in listdir(path='.'): #для каждого файла в директории
+        if file[len(file)-4:len(file)] == '.txt': #если файл имеет расширение .txt
+            for line in open(file, 'r'): #проверяем каждую его строку
+                words = compile('[^a-zA-Zа-яА-Я ]').sub('', line).split() #выкидываем неалфавитные символы
+                if words != []: #если слова в строке остались
+                    if lastword != '': #если последнее слово предыдущей строки не пустое
+                        words = [lastword] + words #добавляем его в начало текущей
+                    for i in range(len(words) - 1): #для чисел от 0 до размера строки -1
+                        if words[i] not in dictionary: #если данного ключа нет в словаре
+                            dictionary[words[i]] = {words[i+1]: 1} #добавляем его
+                        elif words[i+1] not in dictionary[words[i]]: #если у данного ключа нет значения
+                            dictionary[words[i]][words[i+1]] = 1 #добавляем и присуждаем 1
+                        else: #иначе
+                            dictionary[words[i]][words[i+1]] += 1 #увеличиваем на 1
+                    lastword = words[len(words)-1] #запоминаем последнее слово
+    with open('model.json', "w", encoding="utf-8") as file:
+        dump(dictionary, file) #записываем
+
+
+def CreateFrase(n): #функция создания текста от количества строк и словаря
+    frase = '' #итоговая фраза изначальна равна пустой строке
+    with open('model.json') as file: #закружаем словарь из модели
+        dictionary = load(file)
+    for i in range(n):
+        if i == 0 or dictionary[word1] == {}: #если i равно 0 или слово не является первым в какой-либо паре
+            word1 = choice(list(dictionary.keys())) #тогда слово рандомно выбирается из ключей словаря
+            frase += word1 + ' ' #и добавляется к итоговой фразе
+        else: #в противном случае
+            definitions = [] #создаем список значений
+            for key in list(dictionary[word1].keys()): #для каждого значения в словаре
+                for j in range(dictionary[word1][key]): #добавляем его значение столько раз,
+                    definitions.append(key)             #сколько эта пара встречается в список definitions
+            word2 = choice(definitions) #из получившегося списка случайно выбираем слово
+            frase += word2 + ' ' #добавляем его к итоговой фразе
+            word1 = word2 #теперь второе слово становится первым
+    return frase #возвращаем итоговую фразу
+
+
+command = input('Input the command ("g" for generate the text or "t" to train th neironet): ')
+if command == 't':
+    CreateDictionary()
+    print("The neironet is trained!")
+elif 'g':
+    amount = int(input('Input the amount of words in generated text: '))
+    print(CreateFrase(amount))
+else:
+    print('Command not found!')
