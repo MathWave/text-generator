@@ -1,6 +1,5 @@
-from os import listdir
-from re import compile
-from random import choice
+import os
+import random
 from tkinter import *
 
 
@@ -8,10 +7,10 @@ def CreateText(n): #функция создания текста от колич
 
     dictionary = {}  # изначально словарь пустой
     lastword = ''  # последнее слово пустое
-    for file in listdir(path='.'):  # для каждого файла в директории
+    for file in os.listdir(path='.'):  # для каждого файла в директории
         if file[len(file) - 4:len(file)] == '.txt':  # если файл имеет расширение .txt
             for line in open(file, 'r'):  # проверяем каждую его строку
-                words = compile('[^a-zA-Zа-яА-Я ]').sub('', line).split()  # выкидываем неалфавитные символы
+                words = re.compile('[^,-.0-9a-zA-Zа-яА-Я ]').sub('', line).split()  # выкидываем неалфавитные символы
                 if words != []:  # если слова в строке остались
                     if lastword != '':  # если последнее слово предыдущей строки не пустое
                         words = [lastword] + words  # добавляем его в начало текущей
@@ -26,15 +25,15 @@ def CreateText(n): #функция создания текста от колич
 
     text = ''  # итоговая фраза изначальна равна пустой строке
     for i in range(n):
-        if i == 0 or dictionary[word1] == {}: #если i равно 0 или слово не является первым в какой-либо паре
-            word1 = choice(list(dictionary.keys())) #тогда слово рандомно выбирается из ключей словаря
+        if i == 0 or word1 not in list(dictionary.keys()):#если i равно 0 или слово не является первым в какой-либо паре
+            word1 = random.choice(list(dictionary.keys())) #тогда слово рандомно выбирается из ключей словаря
             text += word1 + ' ' #и добавляется к итоговой фразе
         else: #в противном случае
             definitions = [] #создаем список значений
             for key in list(dictionary[word1].keys()): #для каждого значения в словаре
                 for j in range(dictionary[word1][key]): #добавляем его значение столько раз,
                     definitions.append(key)             #сколько эта пара встречается в список definitions
-            word2 = choice(definitions) #из получившегося списка случайно выбираем слово
+            word2 = random.choice(definitions) #из получившегося списка случайно выбираем слово
             text += word2 + ' ' #добавляем его к итоговой фразе
             word1 = word2 #теперь второе слово становится первым
     return text #возвращаем итоговую фразу
